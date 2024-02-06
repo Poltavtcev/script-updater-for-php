@@ -148,6 +148,23 @@ class Controller
             }
           }
       }
+      if(array_key_exists('update',$updateFiles))
+      {
+        $updFiles = $updateFiles['update'];
+        for($i = 0; $i < count($updFiles); $i++)
+        {
+          if(file_exists($updateFolder.$updFiles[$i]['local']))
+          {
+            if($zip->addFile($updateFolder.$updFiles[$i]['local'],$updFiles[$i]['local']) === false)
+            {
+              $zip->close();
+              unlink($filename);
+              echo json_encode(array('success'=>false));
+              exit();
+            }
+          }
+        }
+      }
       if(array_key_exists('delete',$updateFiles))
       {
         $deleteFiles = $updateFiles['delete'];
@@ -420,6 +437,25 @@ class Controller
                  mkdir($pathInfo['dirname'],0755,true);
                }
                if(file_put_contents($updateFolder.$addFiles[$i]['local'],$content) === false)
+               {
+                 header('HTTP/1.0 500 '.Language::Instance()->server_error);
+                 exit();
+               }
+          }
+      }
+      if(array_key_exists('update',$updateFiles))
+      {
+          $updFiles = $updateFiles['update'];
+          for($i = 0; $i < count($updFiles); $i++)
+          {
+               $content = @file_get_contents($config->version_url."/".$updFiles[$i]['remote']);
+               $pathInfo = pathinfo($updateFolder.$updFiles[$i]['local']);
+               if(!file_exists($pathInfo['dirname']))
+               {
+                 // true = recursive
+                 mkdir($pathInfo['dirname'],0755,true);
+               }
+               if(file_put_contents($updateFolder.$updFiles[$i]['local'],$content) === false)
                {
                  header('HTTP/1.0 500 '.Language::Instance()->server_error);
                  exit();
